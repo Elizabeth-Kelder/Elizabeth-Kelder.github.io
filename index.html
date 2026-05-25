@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Välgunooled</title>
+
+<style>
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+    }
+
+    body{
+        overflow:hidden;
+        background:
+            radial-gradient(circle at top, #101a33 0%, #050814 60%, #000 100%);
+        height:100vh;
+        cursor:pointer;
+        font-family:Arial, sans-serif;
+    }
+
+    canvas{
+        position:fixed;
+        inset:0;
+        width:100%;
+        height:100%;
+    }
+
+    .info{
+        position:fixed;
+        top:20px;
+        left:50%;
+        transform:translateX(-50%);
+        color:white;
+        font-size:18px;
+        letter-spacing:1px;
+        opacity:0.8;
+        text-shadow:0 0 10px #7dd3ff;
+        pointer-events:none;
+    }
+</style>
+</head>
+<body>
+
+<div class="info">
+    Vajuta ekraanile ⚡
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+
+function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+const sparkles = [];
+const ambientBolts = [];
+const clickBolts = [];
+
+class Sparkle{
+    constructor(){
+        this.reset();
+    }
+
+    reset(){
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.radius = Math.random() * 2 + 0.5;
+        this.alpha = Math.random();
+        this.speed = Math.random() * 0.02 + 0.005;
+    }
+
+    update(){
+        this.alpha += this.speed;
+
+        if(this.alpha >= 1 || this.alpha <= 0){
+            this.speed *= -1;
+        }
+    }
+
+    draw(){
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(120,200,255,${this.alpha})`;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#7dd3ff";
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+        ctx.fill();
+    }
+}
+
+class Lightning{
+    constructor(x1, y1, x2, y2, strong=false){
+        this.points = [];
+        this.life = strong ? 25 : 12;
+        this.maxLife = this.life;
+        this.strong = strong;
+
+        this.createBolt(x1,y1,x2,y2);
+    }
+
+    createBolt(x1,y1,x2,y2){
+        const segments = 25;
+
+        this.points.push({x:x1,y:y1});
+
+        for(let i=1;i<segments;i++){
+            const t = i / segments;
+
+            const nx = x1 + (x2 - x1) * t + (Math.random()-0.5) * 80;
+            const ny = y1 + (y2 - y1) * t + (Math.random()-0.5) * 80;
+
+            this.points.push({x:nx,y:ny});
+        }
+
+        this.points.push({x:x2,y:y2});
+    }
+
+    update(){
+        this.life--;
+    }
+
+    draw(){
+        const alpha = this.life / this.maxLife;
+
+        ctx.beginPath();
+        ctx.moveTo(this.points[0].x, this.points[0].y);
+
+        for(let p of this.points){
+            ctx.lineTo(p.x,p.y);
+        }
+
+        ctx.strokeStyle = this.strong
+            ? `rgba(255,255,255,${alpha})`
+            : `rgba(120,200,255,${alpha})`;
+
+        ctx.lineWidth = this.strong ? 4 : 2;
+
+        ctx.shadowBlur = this.strong ? 35 : 15;
+        ctx.shadowColor = "#8ae6ff";
+
+        ctx.stroke();
+
+        // inner glow
+        ctx.beginPath();
+        ctx.moveTo(this.points[0].x, this.points[0].y);
+
+        for(let p of this.points){
+            ctx.lineTo(p.x,p.y);
+        }
+
+        ctx.strokeStyle = `rgba(180,240,255,${alpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+}
+
+// sparkles
+for(let i=0;i<180;i++){
+    sparkles.push(new Sparkle());
+}
+
+// ambient lightning
+setInterval(()=>{
+    const side = Math.random();
+
+    let x1, y1, x2, y2;
+
+    if(side < 0.5){
+        x1 = Math.random() * w;
+        y1 = 0;
+        x2 = Math.random() * w;
+        y2 = h;
+    } else {
+        x1 = 0;
+        y1 = Math.random() * h;
+        x2 = w;
+        y2 = Math.random() * h;
+    }
+
+    ambientBolts.push(
+        new Lightning(x1,y1,x2,y2,false)
+    );
+
+}, 900);
+
+// click lightning
+window.addEventListener("click", (e)=>{
+
+    for(let i=0;i<4;i++){
+
+        const angle = (Math.PI * 2 / 4) * i;
+        const distance = 300 + Math.random()*200;
+
+        const x2 = e.clientX + Math.cos(angle) * distance;
+        const y2 = e.clientY + Math.sin(angle) * distance;
+
+        clickBolts.push(
+            new Lightning(
+                e.clientX,
+                e.clientY,
+                x2,
+                y2,
+                true
+            )
+        );
+    }
+
+    flash();
+});
+
+function flash(){
+    const flashDiv = document.createElement("div");
+
+    flashDiv.style.position = "fixed";
+    flashDiv.style.inset = "0";
+    flashDiv.style.background = "rgba(180,220,255,0.15)";
+    flashDiv.style.pointerEvents = "none";
+    flashDiv.style.animation = "flash 0.25s ease-out forwards";
+
+    document.body.appendChild(flashDiv);
+
+    setTimeout(()=>{
+        flashDiv.remove();
+    },250);
+}
+
+function animate(){
+    requestAnimationFrame(animate);
+
+    ctx.clearRect(0,0,w,h);
+
+    // dark overlay for trails
+    ctx.fillStyle = "rgba(0,0,10,0.18)";
+    ctx.fillRect(0,0,w,h);
+
+    // sparkles
+    sparkles.forEach(s=>{
+        s.update();
+        s.draw();
+    });
+
+    // ambient bolts
+    for(let i=ambientBolts.length-1;i>=0;i--){
+        ambientBolts[i].update();
+        ambientBolts[i].draw();
+
+        if(ambientBolts[i].life <= 0){
+            ambientBolts.splice(i,1);
+        }
+    }
+
+    // click bolts
+    for(let i=clickBolts.length-1;i>=0;i--){
+        clickBolts[i].update();
+        clickBolts[i].draw();
+
+        if(clickBolts[i].life <= 0){
+            clickBolts.splice(i,1);
+        }
+    }
+}
+
+animate();
+</script>
+
+</body>
+</html>
