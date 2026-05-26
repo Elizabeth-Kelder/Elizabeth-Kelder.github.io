@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Lightning Highway</title>
+<title>Öine Maantee</title>
 
 <style>
     *{
@@ -14,375 +14,415 @@
 
     body{
         overflow:hidden;
-        background:
-            radial-gradient(circle at top, #101a33 0%, #050814 60%, #000 100%);
-        height:100vh;
-        cursor:pointer;
+        background:#000;
         font-family:Arial, sans-serif;
     }
 
     canvas{
-        position:fixed;
-        inset:0;
-        width:100%;
-        height:100%;
+        display:block;
     }
 
     .title{
-        position:fixed;
-        top:30px;
-        left:50%;
-        transform:translateX(-50%);
+        position:absolute;
+        top:20px;
+        left:20px;
         color:white;
-        font-size:42px;
-        font-weight:bold;
+        z-index:10;
+        text-shadow:0 0 12px rgba(255,255,255,0.8);
+    }
+
+    .title h1{
+        font-size:34px;
         letter-spacing:3px;
-        text-shadow:
-            0 0 10px #7dd3ff,
-            0 0 25px #00aaff;
-        z-index:10;
-        pointer-events:none;
     }
 
-    .controls{
-        position:fixed;
-        bottom:40px;
-        left:50%;
-        transform:translateX(-50%);
-        display:flex;
-        gap:15px;
-        z-index:20;
-    }
-
-    button{
-        padding:14px 28px;
-        border:none;
-        border-radius:14px;
-        background:rgba(20,40,80,0.75);
-        color:white;
-        font-size:16px;
-        font-weight:bold;
-        cursor:pointer;
-        backdrop-filter:blur(10px);
-        transition:0.25s;
-        box-shadow:
-            0 0 10px rgba(0,180,255,0.5),
-            inset 0 0 10px rgba(255,255,255,0.1);
-    }
-
-    button:hover{
-        transform:translateY(-3px) scale(1.05);
-        background:rgba(40,80,140,0.9);
-        box-shadow:
-            0 0 20px rgba(0,200,255,0.9),
-            0 0 40px rgba(0,120,255,0.5);
-    }
-
-    .hint{
-        position:fixed;
-        top:95px;
-        left:50%;
-        transform:translateX(-50%);
-        color:#bfe8ff;
-        opacity:0.85;
-        font-size:16px;
-        z-index:10;
-        pointer-events:none;
+    .title p{
+        opacity:0.8;
     }
 </style>
 </head>
 <body>
 
-<div class="title">⚡ LIFE IS A HIGHWAY ⚡</div>
-<div class="hint">Vajuta ekraanile ja kutsu välgud esile</div>
-
-<div class="controls">
-    <button id="playBtn">▶ Play Music</button>
-    <button id="stormBtn">⚡ Mega Storm</button>
+<div class="title">
+    <h1>Öine Maantee</h1>
+    <p>Autod • Tähed • Välk • Langevad tähed</p>
 </div>
 
 <canvas id="canvas"></canvas>
-
-<!--
-Pane samasse GitHub Pages kausta fail:
-life-is-a-highway.mp3
-
-Näiteks:
-index.html
-life-is-a-highway.mp3
--->
-
-<audio id="music" loop>
-    <source src="life-is-a-highway.mp3" type="audio/mpeg">
-</audio>
 
 <script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-const music = document.getElementById("music");
-const playBtn = document.getElementById("playBtn");
-const stormBtn = document.getElementById("stormBtn");
+let w = canvas.width = window.innerWidth;
+let h = canvas.height = window.innerHeight;
 
-let w, h;
-
-function resize(){
+window.addEventListener("resize", () => {
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
+    createStars();
+});
+
+//////////////////////////////////////////////////////
+// STARS
+//////////////////////////////////////////////////////
+
+let stars = [];
+
+function createStars(){
+    stars = [];
+
+    for(let i=0;i<300;i++){
+        stars.push({
+            x:Math.random()*w,
+            y:Math.random()*h*0.7,
+            r:Math.random()*2,
+            a:Math.random(),
+            speed:(Math.random()*0.02)+0.005
+        });
+    }
 }
-resize();
 
-window.addEventListener("resize", resize);
+createStars();
 
-const sparkles = [];
-const ambientBolts = [];
-const clickBolts = [];
+//////////////////////////////////////////////////////
+// SHOOTING STARS
+//////////////////////////////////////////////////////
 
-class Sparkle{
-    constructor(){
-        this.reset();
+let shootingStars = [];
+
+function spawnShootingStar(){
+    shootingStars.push({
+        x:Math.random()*w,
+        y:Math.random()*200,
+        len:150 + Math.random()*150,
+        speed:10 + Math.random()*8,
+        life:0
+    });
+}
+
+setInterval(spawnShootingStar, 4000);
+
+//////////////////////////////////////////////////////
+// LIGHTNING
+//////////////////////////////////////////////////////
+
+let lightning = 0;
+
+setInterval(() => {
+    if(Math.random() > 0.45){
+        lightning = 1;
     }
+}, 5000);
 
-    reset(){
-        this.x = Math.random() * w;
-        this.y = Math.random() * h;
-        this.radius = Math.random() * 2 + 0.5;
-        this.alpha = Math.random();
-        this.speed = Math.random() * 0.02 + 0.005;
+//////////////////////////////////////////////////////
+// CARS
+//////////////////////////////////////////////////////
+
+let cars = [];
+
+function createCars(){
+
+    cars = [];
+
+    for(let i=0;i<8;i++){
+
+        const direction = Math.random() > 0.5 ? 1 : -1;
+
+        cars.push({
+            x: direction === 1 ? -200 - Math.random()*800 : w + Math.random()*800,
+            y: h*0.72 + (Math.random()*90 - 45),
+            speed: 4 + Math.random()*7,
+            direction,
+            color:[
+                "#ff3030",
+                "#2ea8ff",
+                "#ffffff",
+                "#ffd23f",
+                "#57ff89"
+            ][Math.floor(Math.random()*5)]
+        });
     }
+}
 
-    update(){
-        this.alpha += this.speed;
+createCars();
 
-        if(this.alpha >= 1 || this.alpha <= 0){
-            this.speed *= -1;
+//////////////////////////////////////////////////////
+// DRAW SKY
+//////////////////////////////////////////////////////
+
+function drawSky(){
+
+    const grad = ctx.createLinearGradient(0,0,0,h);
+
+    grad.addColorStop(0,"#01030a");
+    grad.addColorStop(0.5,"#07152b");
+    grad.addColorStop(1,"#111");
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,w,h);
+
+    // stars
+
+    stars.forEach(s => {
+
+        s.a += s.speed;
+
+        if(s.a > 1 || s.a < 0.2){
+            s.speed *= -1;
         }
-    }
 
-    draw(){
         ctx.beginPath();
-        ctx.fillStyle = `rgba(120,200,255,${this.alpha})`;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "#7dd3ff";
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+        ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
         ctx.fill();
-    }
-}
+    });
 
-class Lightning{
-    constructor(x1, y1, x2, y2, strong=false){
-        this.points = [];
-        this.life = strong ? 25 : 12;
-        this.maxLife = this.life;
-        this.strong = strong;
+    // shooting stars
 
-        this.createBolt(x1, y1, x2, y2);
-    }
+    shootingStars.forEach((s,index)=>{
 
-    createBolt(x1,y1,x2,y2){
-        const segments = 25;
-
-        this.points.push({x:x1,y:y1});
-
-        for(let i=1;i<segments;i++){
-
-            const t = i / segments;
-
-            const nx =
-                x1 + (x2 - x1) * t +
-                (Math.random() - 0.5) * 80;
-
-            const ny =
-                y1 + (y2 - y1) * t +
-                (Math.random() - 0.5) * 80;
-
-            this.points.push({x:nx,y:ny});
-        }
-
-        this.points.push({x:x2,y:y2});
-    }
-
-    update(){
-        this.life--;
-    }
-
-    draw(){
-
-        const alpha = this.life / this.maxLife;
+        ctx.strokeStyle = "rgba(255,255,255,0.9)";
+        ctx.lineWidth = 2;
 
         ctx.beginPath();
-        ctx.moveTo(this.points[0].x, this.points[0].y);
-
-        for(const p of this.points){
-            ctx.lineTo(p.x,p.y);
-        }
-
-        ctx.strokeStyle = this.strong
-            ? `rgba(255,255,255,${alpha})`
-            : `rgba(120,200,255,${alpha})`;
-
-        ctx.lineWidth = this.strong ? 4 : 2;
-
-        ctx.shadowBlur = this.strong ? 35 : 15;
-        ctx.shadowColor = "#8ae6ff";
-
+        ctx.moveTo(s.x,s.y);
+        ctx.lineTo(s.x - s.len, s.y + s.len*0.35);
         ctx.stroke();
 
-        ctx.beginPath();
-        ctx.moveTo(this.points[0].x, this.points[0].y);
+        s.x += s.speed;
+        s.y += s.speed*0.35;
+        s.life++;
 
-        for(const p of this.points){
-            ctx.lineTo(p.x,p.y);
+        if(s.life > 60){
+            shootingStars.splice(index,1);
         }
+    });
+}
 
-        ctx.strokeStyle = `rgba(180,240,255,${alpha})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
+//////////////////////////////////////////////////////
+// DRAW MOUNTAINS
+//////////////////////////////////////////////////////
+
+function drawMountains(){
+
+    ctx.fillStyle = "#050505";
+
+    ctx.beginPath();
+
+    ctx.moveTo(0,h);
+
+    for(let x=0;x<w+200;x+=120){
+
+        const peak = h*0.45 + Math.sin(x*0.01)*40 + Math.random()*50;
+
+        ctx.lineTo(x,peak);
+    }
+
+    ctx.lineTo(w,h);
+    ctx.closePath();
+    ctx.fill();
+}
+
+//////////////////////////////////////////////////////
+// DRAW ROAD
+//////////////////////////////////////////////////////
+
+function drawRoad(){
+
+    const roadY = h*0.72;
+
+    // road glow
+
+    ctx.fillStyle = "rgba(255,255,255,0.03)";
+    ctx.fillRect(0,roadY-60,w,120);
+
+    // road
+
+    ctx.fillStyle = "#1c1c1c";
+    ctx.fillRect(0,roadY-45,w,90);
+
+    // road edges
+
+    ctx.strokeStyle = "#666";
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    ctx.moveTo(0,roadY-45);
+    ctx.lineTo(w,roadY-45);
+
+    ctx.moveTo(0,roadY+45);
+    ctx.lineTo(w,roadY+45);
+
+    ctx.stroke();
+
+    // center dashed line
+
+    ctx.strokeStyle = "#ffd54a";
+    ctx.lineWidth = 4;
+    ctx.setLineDash([30,25]);
+
+    ctx.beginPath();
+    ctx.moveTo(0,roadY);
+    ctx.lineTo(w,roadY);
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+}
+
+//////////////////////////////////////////////////////
+// DRAW CAR
+//////////////////////////////////////////////////////
+
+function drawCar(car){
+
+    const x = car.x;
+    const y = car.y;
+
+    ctx.save();
+
+    ctx.translate(x,y);
+
+    if(car.direction === -1){
+        ctx.scale(-1,1);
+    }
+
+    // glow
+
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = car.color;
+
+    // body
+
+    ctx.fillStyle = car.color;
+
+    ctx.beginPath();
+    ctx.roundRect(-30,-12,60,24,8);
+    ctx.fill();
+
+    // top
+
+    ctx.beginPath();
+    ctx.roundRect(-15,-24,30,16,6);
+    ctx.fill();
+
+    // windows
+
+    ctx.fillStyle = "#8ee7ff";
+
+    ctx.beginPath();
+    ctx.roundRect(-10,-21,20,10,4);
+    ctx.fill();
+
+    // wheels
+
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = "#111";
+
+    ctx.beginPath();
+    ctx.arc(-18,14,7,0,Math.PI*2);
+
+    ctx.arc(18,14,7,0,Math.PI*2);
+    ctx.fill();
+
+    // headlights
+
+    ctx.fillStyle = "#fff8b0";
+
+    ctx.beginPath();
+    ctx.arc(31,-4,4,0,Math.PI*2);
+
+    ctx.arc(31,4,4,0,Math.PI*2);
+    ctx.fill();
+
+    // light beam
+
+    const grad = ctx.createLinearGradient(30,0,130,0);
+
+    grad.addColorStop(0,"rgba(255,255,200,0.35)");
+    grad.addColorStop(1,"rgba(255,255,200,0)");
+
+    ctx.fillStyle = grad;
+
+    ctx.beginPath();
+    ctx.moveTo(30,-12);
+    ctx.lineTo(130,-30);
+    ctx.lineTo(130,30);
+    ctx.lineTo(30,12);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+
+    car.x += car.speed * car.direction;
+
+    // recycle
+
+    if(car.direction === 1 && car.x > w + 200){
+        car.x = -300;
+    }
+
+    if(car.direction === -1 && car.x < -300){
+        car.x = w + 300;
     }
 }
 
-for(let i=0;i<220;i++){
-    sparkles.push(new Sparkle());
+//////////////////////////////////////////////////////
+// LIGHTNING
+//////////////////////////////////////////////////////
+
+function drawLightning(){
+
+    if(lightning <= 0) return;
+
+    ctx.fillStyle = `rgba(255,255,255,${lightning*0.18})`;
+    ctx.fillRect(0,0,w,h);
+
+    ctx.strokeStyle = `rgba(255,255,255,${lightning})`;
+    ctx.lineWidth = 3;
+
+    let x = Math.random()*w;
+
+    ctx.beginPath();
+    ctx.moveTo(x,0);
+
+    let currentX = x;
+    let currentY = 0;
+
+    while(currentY < h*0.5){
+
+        currentX += (Math.random()-0.5)*50;
+        currentY += Math.random()*40;
+
+        ctx.lineTo(currentX,currentY);
+    }
+
+    ctx.stroke();
+
+    lightning -= 0.03;
 }
 
-setInterval(()=>{
-
-    const side = Math.random();
-
-    let x1, y1, x2, y2;
-
-    if(side < 0.5){
-        x1 = Math.random() * w;
-        y1 = 0;
-        x2 = Math.random() * w;
-        y2 = h;
-    } else {
-        x1 = 0;
-        y1 = Math.random() * h;
-        x2 = w;
-        y2 = Math.random() * h;
-    }
-
-    ambientBolts.push(
-        new Lightning(x1,y1,x2,y2,false)
-    );
-
-}, 900);
-
-function createStrike(x,y){
-
-    for(let i=0;i<5;i++){
-
-        const angle = (Math.PI * 2 / 5) * i;
-        const distance = 250 + Math.random()*250;
-
-        const x2 = x + Math.cos(angle) * distance;
-        const y2 = y + Math.sin(angle) * distance;
-
-        clickBolts.push(
-            new Lightning(x,y,x2,y2,true)
-        );
-    }
-
-    flash();
-}
-
-window.addEventListener("click", (e)=>{
-    createStrike(e.clientX, e.clientY);
-});
-
-stormBtn.addEventListener("click", ()=>{
-
-    for(let i=0;i<10;i++){
-
-        setTimeout(()=>{
-
-            const x = Math.random() * w;
-            const y = Math.random() * h;
-
-            createStrike(x,y);
-
-        }, i * 120);
-    }
-});
-
-playBtn.addEventListener("click", async ()=>{
-
-    if(music.paused){
-
-        try{
-            await music.play();
-            playBtn.innerHTML = "⏸ Pause Music";
-        }catch(err){
-            alert("Brauser blokeeris autoplay. Vajuta uuesti.");
-        }
-
-    }else{
-        music.pause();
-        playBtn.innerHTML = "▶ Play Music";
-    }
-});
-
-function flash(){
-
-    const flashDiv = document.createElement("div");
-
-    flashDiv.style.position = "fixed";
-    flashDiv.style.inset = "0";
-    flashDiv.style.background =
-        "rgba(180,220,255,0.18)";
-
-    flashDiv.style.pointerEvents = "none";
-    flashDiv.style.zIndex = "5";
-    flashDiv.style.transition = "opacity 0.3s";
-
-    document.body.appendChild(flashDiv);
-
-    setTimeout(()=>{
-        flashDiv.style.opacity = "0";
-    },40);
-
-    setTimeout(()=>{
-        flashDiv.remove();
-    },300);
-}
+//////////////////////////////////////////////////////
+// ANIMATION
+//////////////////////////////////////////////////////
 
 function animate(){
 
     requestAnimationFrame(animate);
 
-    ctx.clearRect(0,0,w,h);
+    drawSky();
+    drawMountains();
+    drawRoad();
 
-    ctx.fillStyle = "rgba(0,0,10,0.18)";
-    ctx.fillRect(0,0,w,h);
+    cars.forEach(drawCar);
 
-    sparkles.forEach(s=>{
-        s.update();
-        s.draw();
-    });
-
-    for(let i=ambientBolts.length-1;i>=0;i--){
-
-        ambientBolts[i].update();
-        ambientBolts[i].draw();
-
-        if(ambientBolts[i].life <= 0){
-            ambientBolts.splice(i,1);
-        }
-    }
-
-    for(let i=clickBolts.length-1;i>=0;i--){
-
-        clickBolts[i].update();
-        clickBolts[i].draw();
-
-        if(clickBolts[i].life <= 0){
-            clickBolts.splice(i,1);
-        }
-    }
+    drawLightning();
 }
 
 animate();
+
 </script>
 
 </body>
