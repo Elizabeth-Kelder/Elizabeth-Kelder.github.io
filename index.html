@@ -45,7 +45,7 @@
 
 <div class="title">
     <h1>Öine Maantee</h1>
-    <p>Autod • Tähed • Välk • Langevad tähed</p>
+    <p>Autod • Tähed • Välk</p>
 </div>
 
 <canvas id="canvas"></canvas>
@@ -70,9 +70,11 @@ window.addEventListener("resize", () => {
 let stars = [];
 
 function createStars(){
+
     stars = [];
 
     for(let i=0;i<300;i++){
+
         stars.push({
             x:Math.random()*w,
             y:Math.random()*h*0.7,
@@ -86,33 +88,17 @@ function createStars(){
 createStars();
 
 //////////////////////////////////////////////////////
-// SHOOTING STARS
-//////////////////////////////////////////////////////
-
-let shootingStars = [];
-
-function spawnShootingStar(){
-    shootingStars.push({
-        x:Math.random()*w,
-        y:Math.random()*200,
-        len:150 + Math.random()*150,
-        speed:10 + Math.random()*8,
-        life:0
-    });
-}
-
-setInterval(spawnShootingStar, 4000);
-
-//////////////////////////////////////////////////////
 // LIGHTNING
 //////////////////////////////////////////////////////
 
 let lightning = 0;
 
 setInterval(() => {
+
     if(Math.random() > 0.45){
         lightning = 1;
     }
+
 }, 5000);
 
 //////////////////////////////////////////////////////
@@ -130,10 +116,16 @@ function createCars(){
         const direction = Math.random() > 0.5 ? 1 : -1;
 
         cars.push({
-            x: direction === 1 ? -200 - Math.random()*800 : w + Math.random()*800,
+            x: direction === 1
+                ? -200 - Math.random()*800
+                : w + Math.random()*800,
+
             y: h*0.72 + (Math.random()*90 - 45),
+
             speed: 4 + Math.random()*7,
+
             direction,
+
             color:[
                 "#ff3030",
                 "#2ea8ff",
@@ -173,55 +165,13 @@ function drawSky(){
         }
 
         ctx.beginPath();
+
         ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+
         ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+
         ctx.fill();
     });
-
-    // shooting stars
-
-    shootingStars.forEach((s,index)=>{
-
-        ctx.strokeStyle = "rgba(255,255,255,0.9)";
-        ctx.lineWidth = 2;
-
-        ctx.beginPath();
-        ctx.moveTo(s.x,s.y);
-        ctx.lineTo(s.x - s.len, s.y + s.len*0.35);
-        ctx.stroke();
-
-        s.x += s.speed;
-        s.y += s.speed*0.35;
-        s.life++;
-
-        if(s.life > 60){
-            shootingStars.splice(index,1);
-        }
-    });
-}
-
-//////////////////////////////////////////////////////
-// DRAW MOUNTAINS
-//////////////////////////////////////////////////////
-
-function drawMountains(){
-
-    ctx.fillStyle = "#050505";
-
-    ctx.beginPath();
-
-    ctx.moveTo(0,h);
-
-    for(let x=0;x<w+200;x+=120){
-
-        const peak = h*0.45 + Math.sin(x*0.01)*40 + Math.random()*50;
-
-        ctx.lineTo(x,peak);
-    }
-
-    ctx.lineTo(w,h);
-    ctx.closePath();
-    ctx.fill();
 }
 
 //////////////////////////////////////////////////////
@@ -248,6 +198,7 @@ function drawRoad(){
     ctx.lineWidth = 3;
 
     ctx.beginPath();
+
     ctx.moveTo(0,roadY-45);
     ctx.lineTo(w,roadY-45);
 
@@ -322,9 +273,10 @@ function drawCar(car){
     ctx.fillStyle = "#111";
 
     ctx.beginPath();
-    ctx.arc(-18,14,7,0,Math.PI*2);
 
+    ctx.arc(-18,14,7,0,Math.PI*2);
     ctx.arc(18,14,7,0,Math.PI*2);
+
     ctx.fill();
 
     // headlights
@@ -332,12 +284,13 @@ function drawCar(car){
     ctx.fillStyle = "#fff8b0";
 
     ctx.beginPath();
-    ctx.arc(31,-4,4,0,Math.PI*2);
 
+    ctx.arc(31,-4,4,0,Math.PI*2);
     ctx.arc(31,4,4,0,Math.PI*2);
+
     ctx.fill();
 
-    // light beam
+    // headlight beam
 
     const grad = ctx.createLinearGradient(30,0,130,0);
 
@@ -347,18 +300,23 @@ function drawCar(car){
     ctx.fillStyle = grad;
 
     ctx.beginPath();
+
     ctx.moveTo(30,-12);
     ctx.lineTo(130,-30);
     ctx.lineTo(130,30);
     ctx.lineTo(30,12);
+
     ctx.closePath();
+
     ctx.fill();
 
     ctx.restore();
 
+    // movement
+
     car.x += car.speed * car.direction;
 
-    // recycle
+    // reset
 
     if(car.direction === 1 && car.x > w + 200){
         car.x = -300;
@@ -413,7 +371,6 @@ function animate(){
     requestAnimationFrame(animate);
 
     drawSky();
-    drawMountains();
     drawRoad();
 
     cars.forEach(drawCar);
